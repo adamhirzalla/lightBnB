@@ -16,8 +16,8 @@ const getUserWithEmail = function(email) {
   FROM users
   WHERE email IN ($1, $2) 
   ;`;
-  const values = [email.toLowerCase(), email.toUpperCase()];
-  return db.query(query, values)
+  const params = [email.toLowerCase(), email.toUpperCase()];
+  return db.query(query, params)
     .then(result => result.rows.length > 0 ? result.rows[0] : null)
     .catch(err => console.log(err.message));
 };
@@ -100,7 +100,9 @@ const getAllProperties = function(options, limit = 10) {
   if (owner_id) {
     let query = `SELECT * FROM properties WHERE owner_id = $1 LIMIT $2`;
     params.push(owner_id, limit);
-    return db.query(query, params).then((res) => res.rows);
+    return db.query(query, params)
+      .then((res) => res.rows)
+      .catch(err => console.log(err.message));
   }
 
   let queryString = `
@@ -116,9 +118,14 @@ const getAllProperties = function(options, limit = 10) {
     queryString += `WHERE city LIKE $${params.length} `;
   }
   
-  if (minimum_price_per_night && maximum_price_per_night) {
-    params.push(minimum_price_per_night * 100, maximum_price_per_night * 100);
-    queryString += `AND (cost_per_night >= $${params.length - 1} AND cost_per_night <= $${params.length}) `;
+  if (minimum_price_per_night) {
+    params.push(minimum_price_per_night * 100);
+    queryString += (params.length ? 'AND ' : 'WHERE ') + `cost_per_night >= $${params.length} `;
+  }
+
+  if (maximum_price_per_night) {
+    params.push(maximum_price_per_night * 100);
+    queryString += (params.length ? 'AND ' : 'WHERE ') + `cost_per_night <= $${params.length} `;
   }
   
   // add group by before aggregation condition if exists

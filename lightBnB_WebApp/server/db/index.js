@@ -13,7 +13,7 @@ const pool = new Pool(config);
 pool.connect(() => console.log(`Connected to ${config.database} db on port ${config.port} 😎`));
 
 module.exports = {
-  query: (text, params, callback) => {
-    return pool.query(text, params, callback);
+  query: (text, params) => {
+    return pool.query(text, params);
   },
 };
